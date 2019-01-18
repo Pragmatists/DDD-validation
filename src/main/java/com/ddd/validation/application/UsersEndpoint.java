@@ -5,8 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestController
 public class UsersEndpoint {
@@ -22,10 +26,19 @@ public class UsersEndpoint {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<ErrorResponseJson> createUser(@RequestBody UserCreationRequst request) {
-        User user = userFactory.create(request.email, request.password);
-        users.add(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ErrorResponseJson.noErrors(user.getId()));
+    public ResponseEntity<UserCreationResponse> createUser(@RequestBody UserCreationRequst request) {
+        AggregatingErrorCollector aggregatingErrorCollector = new AggregatingErrorCollector();
+
+        Password.test(request.password, aggregatingErrorCollector);
+        Email.test(request.email, aggregatingErrorCollector);
+
+        if (aggregatingErrorCollector.hasErrors()) {
+           return ResponseEntity.status(BAD_REQUEST).body(UserCreationResponse.withErrors(aggregatingErrorCollector.getErrors()));
+        } else{
+            User user = userFactory.create(Password.of(request.password), Email.of(request.email));
+            users.add(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(UserCreationResponse.noErrors(user.getId()));
+        }
     }
 
     @GetMapping("/users/{id}")
@@ -38,16 +51,40 @@ public class UsersEndpoint {
         public String password;
     }
 
-    public static class ErrorResponseJson {
+    public static class UserCreationResponse {
         public String id;
         public List<String> errors;
 
+        public static UserCreationResponse noErrors(String id) {
+            UserCreationResponse userCreationResponse = new UserCreationResponse();
+            userCreationResponse.id = id;
+            userCreationResponse.errors = Collections.emptyList();
+            return userCreationResponse;
+        }
 
-        public static ErrorResponseJson noErrors(String id) {
-            ErrorResponseJson errorResponseJson = new ErrorResponseJson();
-            errorResponseJson.id = id;
-            errorResponseJson.errors = Collections.emptyList();
-            return errorResponseJson;
+        public static UserCreationResponse withErrors(List<String> errors) {
+            UserCreationResponse userCreationResponse = new UserCreationResponse();
+            userCreationResponse.id = null;
+            userCreationResponse.errors = errors;
+            return userCreationResponse;
+        }
+    }
+
+    public class AggregatingErrorCollector implements ErrorCollector {
+
+        private List<RuntimeException> errors = new ArrayList<>();
+
+        @Override
+        public void add(RuntimeException e) {
+            this.errors.add(e);
+        }
+
+        public boolean hasErrors() {
+            return !errors.isEmpty();
+        }
+
+        public List<String> getErrors() {
+            return errors.stream().map(error -> error.getMessage()).collect(Collectors.toList());
         }
     }
 }

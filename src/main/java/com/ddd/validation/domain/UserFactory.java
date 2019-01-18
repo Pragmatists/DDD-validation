@@ -12,8 +12,8 @@ public class UserFactory {
         this.idGenerator = idGenerator;
     }
 
-    public User create(String email, String password) {
-        return new User(idGenerator.id(), Email.of(email), Password.of(password), new User.EmailUniquenessValidator(users));
+    public User create(Password pass, Email email) {
+        return new User(idGenerator.id(), email, pass, new User.EmailUniquenessValidator(users));
     }
 
 }

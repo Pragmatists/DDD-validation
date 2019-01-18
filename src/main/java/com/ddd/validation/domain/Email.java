@@ -1,21 +1,26 @@
 package com.ddd.validation.domain;
 
+import com.ddd.validation.application.ErrorCollector;
+
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Email {
 
-    private final EmailValidator validator = new EmailValidator();
     private String email;
 
     public Email(String email) {
+        Email.test(email, new ThrowingErrorCollector());
         this.email = email;
-        validator.validate(email);
     }
 
     public static Email of(String email) {
         return new Email(email);
+    }
+
+    public static void test(String email, ErrorCollector errorCollector) {
+        new EmailValidator().validate(email, errorCollector);
     }
 
     @Override
@@ -36,14 +41,15 @@ public class Email {
         return Objects.hash("Email", email);
     }
 
-    private class EmailValidator {
+    private static class EmailValidator {
 
         private final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
-        public void validate(String email) {
+        public void validate(String email, ErrorCollector errorCollector) {
             Matcher matcher = EMAIL_PATTERN.matcher(email);
+
             if (!matcher.matches()) {
-                throw new BadEmailException();
+                errorCollector.add(new BadEmailException());
             }
         }
     }

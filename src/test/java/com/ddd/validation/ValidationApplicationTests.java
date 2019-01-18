@@ -95,7 +95,7 @@ public class ValidationApplicationTests {
 		ResponseEntity<UserCreationResponse> response = template.postForEntity("/users/", userCreationRequest, UserCreationResponse.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
-		assertThat(response.getBody().errors).containsExactlyInAnyOrder("wrong email", "password too weak");
+		assertThat(response.getBody().errors).containsExactlyInAnyOrder("bad email", "password too weak");
 	}
 
 	private String createUserFor(String email) {
