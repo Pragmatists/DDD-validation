@@ -16,16 +16,18 @@ import static org.springframework.http.HttpStatus.*;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class ValidationApplicationTests {
 
+	private static final String STRONG_PASSWORD = "STRONG_PASSWORD";
+
 	@Autowired
 	private TestRestTemplate template;
 
 	@Test
 	public void registerUserByEmail() {
-
 		// given:
+		UserCreationRequest userCreationRequest = new UserCreationRequest("email4@email.com", STRONG_PASSWORD);
 
 		// when:
-		ResponseEntity<Void> response = template.postForEntity("/users/", "email@email.com", Void.class);
+		ResponseEntity<Void> response = template.postForEntity("/users/", userCreationRequest, Void.class);
 
 		// then:
 		assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -33,32 +35,71 @@ public class ValidationApplicationTests {
 
 	@Test
 	public void failUserRegistrationForInvalidEmail() {
-
 		// given:
+		UserCreationRequest userCreationRequest = new UserCreationRequest("email.with.two.ats@@email.com", STRONG_PASSWORD);
 
 		// when:
-		ResponseEntity<Void> response = template.postForEntity("/users/", "email.with.two.ats@@email.com", Void.class);
+		ResponseEntity<Void> response = template.postForEntity("/users/", userCreationRequest, Void.class);
 
 		// then:
 		assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
 	}
 
 	@Test
-	public void retrievesRegisteredUserByEmail() {
+	public void retrievesUserEmailByUserId() {
 
 		// given:
-		String userId = createUserFor("email@email.com");
+		String userId = createUserFor("email2@email.com");
 
 		// when:
 		ResponseEntity<String> response = template.getForEntity("/users/" + userId, String.class);
 
 		// then:
 		assertThat(response.getStatusCode()).isEqualTo(OK);
-		assertThat(response.getBody()).isEqualTo("email@email.com");
+		assertThat(response.getBody()).isEqualTo("email2@email.com");
+	}
+
+	@Test
+	public void failsOnAttemptToCreateUserForAlreadyTakenEmail() {
+
+		// given:
+		createUserFor("email3@email.com");
+
+		// when:
+		UserCreationRequest userCreationRequest = new UserCreationRequest("email3@email.com", STRONG_PASSWORD);
+		ResponseEntity<String> response = template.postForEntity("/users/", userCreationRequest, String.class);
+
+		// then:
+		assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
+	}
+
+	@Test
+	public void failsOnAttemptToCreateUserWithTooWeakPassword() {
+		// when:
+		UserCreationRequest userCreationRequest = new UserCreationRequest("email4@email.com", "WEAK");
+
+		ResponseEntity<String> response = template.postForEntity("/users/", userCreationRequest, String.class);
+
+		// then:
+		assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
 	}
 
 	private String createUserFor(String email) {
-		return template.postForEntity("/users/", email, String.class).getBody();
+		UserCreationRequest userCreationRequest = new UserCreationRequest(email, STRONG_PASSWORD);
+		ResponseEntity<String> response = template.postForEntity("/users/", userCreationRequest, String.class);
+		assertThat(response.getStatusCode()).isEqualTo(CREATED);
+		return response.getBody();
+	}
+
+	public static class UserCreationRequest {
+
+		public final String email;
+		public final String password;
+
+		public UserCreationRequest(String email, String password) {
+			this.email = email;
+			this.password = password;
+		}
 	}
 }
 
