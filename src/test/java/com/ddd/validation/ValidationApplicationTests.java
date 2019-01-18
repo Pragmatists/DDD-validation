@@ -8,6 +8,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.*;
@@ -27,7 +30,7 @@ public class ValidationApplicationTests {
 		UserCreationRequest userCreationRequest = new UserCreationRequest("email4@email.com", STRONG_PASSWORD);
 
 		// when:
-		ResponseEntity<Void> response = template.postForEntity("/users/", userCreationRequest, Void.class);
+		ResponseEntity<UserCreationResponse> response = template.postForEntity("/users/", userCreationRequest, UserCreationResponse.class);
 
 		// then:
 		assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -67,7 +70,7 @@ public class ValidationApplicationTests {
 
 		// when:
 		UserCreationRequest userCreationRequest = new UserCreationRequest("email3@email.com", STRONG_PASSWORD);
-		ResponseEntity<String> response = template.postForEntity("/users/", userCreationRequest, String.class);
+		ResponseEntity<Void> response = template.postForEntity("/users/", userCreationRequest, Void.class);
 
 		// then:
 		assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
@@ -84,11 +87,22 @@ public class ValidationApplicationTests {
 		assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
 	}
 
+	@Test
+	public void failsOnWrongEmailFormatAndPasswordTooWeak() {
+
+		UserCreationRequest userCreationRequest = new UserCreationRequest("email4@@email.com", "WEAK") ;
+
+		ResponseEntity<UserCreationResponse> response = template.postForEntity("/users/", userCreationRequest, UserCreationResponse.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
+		assertThat(response.getBody().errors).containsExactlyInAnyOrder("wrong email", "password too weak");
+	}
+
 	private String createUserFor(String email) {
 		UserCreationRequest userCreationRequest = new UserCreationRequest(email, STRONG_PASSWORD);
-		ResponseEntity<String> response = template.postForEntity("/users/", userCreationRequest, String.class);
+		ResponseEntity<UserCreationResponse> response = template.postForEntity("/users/", userCreationRequest, UserCreationResponse.class);
 		assertThat(response.getStatusCode()).isEqualTo(CREATED);
-		return response.getBody();
+		return response.getBody().id;
 	}
 
 	public static class UserCreationRequest {
@@ -100,6 +114,11 @@ public class ValidationApplicationTests {
 			this.email = email;
 			this.password = password;
 		}
+	}
+
+	public static class UserCreationResponse {
+		public String id;
+		public List<String> errors = new ArrayList<>();
 	}
 }
 

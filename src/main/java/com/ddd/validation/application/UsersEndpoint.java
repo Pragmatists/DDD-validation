@@ -5,6 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.List;
+
 @RestController
 public class UsersEndpoint {
 
@@ -19,10 +22,10 @@ public class UsersEndpoint {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<String> createUser(@RequestBody UserCreationRequst request) {
+    public ResponseEntity<ErrorResponseJson> createUser(@RequestBody UserCreationRequst request) {
         User user = userFactory.create(request.email, request.password);
         users.add(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ErrorResponseJson.noErrors(user.getId()));
     }
 
     @GetMapping("/users/{id}")
@@ -33,5 +36,18 @@ public class UsersEndpoint {
     public static class UserCreationRequst {
         public String email;
         public String password;
+    }
+
+    public static class ErrorResponseJson {
+        public String id;
+        public List<String> errors;
+
+
+        public static ErrorResponseJson noErrors(String id) {
+            ErrorResponseJson errorResponseJson = new ErrorResponseJson();
+            errorResponseJson.id = id;
+            errorResponseJson.errors = Collections.emptyList();
+            return errorResponseJson;
+        }
     }
 }
