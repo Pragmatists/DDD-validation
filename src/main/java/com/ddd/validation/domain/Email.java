@@ -10,7 +10,7 @@ public class Email {
 
     private String email;
 
-    public Email(String email) {
+    private Email(String email) {
         Email.test(email, new ThrowingErrorCollector());
         this.email = email;
     }
@@ -54,5 +54,9 @@ public class Email {
         }
     }
 
-
+    public static class BadEmailException extends RuntimeException {
+        public BadEmailException() {
+            super("bad email");
+        }
+    }
 }

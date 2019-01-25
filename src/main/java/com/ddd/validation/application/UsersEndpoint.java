@@ -5,10 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -17,28 +15,46 @@ public class UsersEndpoint {
 
     private final UsersFinder usersFinder;
     private final Users users;
-    private final UserFactory userFactory;
+    private final User.UserFactory userFactory;
 
-    public UsersEndpoint(UsersFinder usersFinder, Users users, UserFactory userFactory) {
+    public UsersEndpoint(UsersFinder usersFinder, Users users, User.UserFactory userFactory) {
         this.usersFinder = usersFinder;
         this.users = users;
         this.userFactory = userFactory;
     }
 
     @PostMapping("/users")
-    public ResponseEntity<UserCreationResponse> createUser(@RequestBody UserCreationRequst request) {
-        AggregatingErrorCollector aggregatingErrorCollector = new AggregatingErrorCollector();
-
-        Password.test(request.password, aggregatingErrorCollector);
-        Email.test(request.email, aggregatingErrorCollector);
-
-        if (aggregatingErrorCollector.hasErrors()) {
-           return ResponseEntity.status(BAD_REQUEST).body(UserCreationResponse.withErrors(aggregatingErrorCollector.getErrors()));
-        } else{
-            User user = userFactory.create(Password.of(request.password), Email.of(request.email));
-            users.add(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(UserCreationResponse.noErrors(user.getId()));
+    public ResponseEntity<UserCreationResponse> handleCreateUserRequest(@RequestBody UserCreationRequest request) {
+        List<String> errors = validateRequest(request);
+        if (errors.isEmpty()) {
+            User newUser = saveNewUser(request.email, request.password);
+            return ResponseEntity.status(HttpStatus.CREATED).body(UserCreationResponse.noErrors(newUser.getId()));
+        } else {
+            return ResponseEntity.status(BAD_REQUEST).body(UserCreationResponse.withErrors(errors));
         }
+    }
+
+    private List<String> validateRequest(UserCreationRequest request) {
+        AggregatingErrorCollector errorCollector = new AggregatingErrorCollector();
+
+        Email.test(request.email, errorCollector);
+        Password.test(request.password, errorCollector);
+        if (errorCollector.hasErrors()) {
+            return errorCollector.getErrors();
+        }
+
+        userFactory.test(Email.of(request.email), errorCollector);
+        if (errorCollector.hasErrors()) {
+            return errorCollector.getErrors();
+        }
+
+        return Collections.emptyList();
+    }
+
+    private User saveNewUser(String email, String password) {
+        User user = userFactory.create(Password.of(password), Email.of(email));
+        users.add(user);
+        return user;
     }
 
     @GetMapping("/users/{id}")
@@ -46,7 +62,7 @@ public class UsersEndpoint {
         return ResponseEntity.ok(usersFinder.findUserEmailById(id));
     }
 
-    public static class UserCreationRequst {
+    public static class UserCreationRequest {
         public String email;
         public String password;
     }
@@ -70,21 +86,4 @@ public class UsersEndpoint {
         }
     }
 
-    public class AggregatingErrorCollector implements ErrorCollector {
-
-        private List<RuntimeException> errors = new ArrayList<>();
-
-        @Override
-        public void add(RuntimeException e) {
-            this.errors.add(e);
-        }
-
-        public boolean hasErrors() {
-            return !errors.isEmpty();
-        }
-
-        public List<String> getErrors() {
-            return errors.stream().map(error -> error.getMessage()).collect(Collectors.toList());
-        }
-    }
 }

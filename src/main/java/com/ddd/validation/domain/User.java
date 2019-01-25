@@ -1,16 +1,18 @@
 package com.ddd.validation.domain;
 
+import com.ddd.validation.application.ErrorCollector;
+import org.springframework.stereotype.Component;
+
 public class User {
 
     private final String id;
     private final Email email;
     private final Password password;
 
-    public User(String id, Email email, Password password, EmailUniquenessValidator emailUniquenessValidator) {
+    private User(String id, Email email, Password password) {
         this.id = id;
         this.email = email;
         this.password = password;
-        emailUniquenessValidator.validate(email);
     }
 
     public String getId() {
@@ -29,10 +31,31 @@ public class User {
             this.users = users;
         }
 
-        public void validate(Email email) {
+        public void validate(Email email, ErrorCollector errorCollector) {
             if (users.isUniqueEmail(email)){
-                throw new NotUniqueEmailAddress(email);
-            };
+                errorCollector.add(new NotUniqueEmailAddress(email));
+            }
+        }
+    }
+
+    @Component
+    public static class UserFactory {
+
+        private Users users;
+        private IdGenerator idGenerator;
+
+        public UserFactory(Users users, IdGenerator idGenerator) {
+            this.users = users;
+            this.idGenerator = idGenerator;
+        }
+
+        public User create(Password password, Email email) {
+            test(email, new ThrowingErrorCollector());
+            return new User(idGenerator.id(), email, password);
+        }
+
+        public void test(Email email, ErrorCollector errorCollector) {
+            new EmailUniquenessValidator(users).validate(email, errorCollector);
         }
     }
 
