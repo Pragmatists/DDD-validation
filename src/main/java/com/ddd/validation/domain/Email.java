@@ -1,7 +1,5 @@
 package com.ddd.validation.domain;
 
-import com.ddd.validation.application.ErrorCollector;
-
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

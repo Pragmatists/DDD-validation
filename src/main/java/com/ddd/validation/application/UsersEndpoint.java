@@ -28,9 +28,9 @@ public class UsersEndpoint {
         List<String> errors = validateRequest(request);
         if (errors.isEmpty()) {
             User newUser = saveNewUser(request.email, request.password);
-            return ResponseEntity.status(HttpStatus.CREATED).body(UserCreationResponse.noErrors(newUser.getId()));
+            return ResponseEntity.status(HttpStatus.CREATED).body(UserCreationResponse.success(newUser.getId()));
         } else {
-            return ResponseEntity.status(BAD_REQUEST).body(UserCreationResponse.withErrors(errors));
+            return ResponseEntity.status(BAD_REQUEST).body(UserCreationResponse.failure(errors));
         }
     }
 
@@ -58,7 +58,7 @@ public class UsersEndpoint {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<Object> getUserById(@PathVariable String id) {
+    public ResponseEntity<Object> getUserEmailById(@PathVariable String id) {
         return ResponseEntity.ok(usersFinder.findUserEmailById(id));
     }
 
@@ -71,14 +71,14 @@ public class UsersEndpoint {
         public String id;
         public List<String> errors;
 
-        public static UserCreationResponse noErrors(String id) {
+        public static UserCreationResponse success(String id) {
             UserCreationResponse userCreationResponse = new UserCreationResponse();
             userCreationResponse.id = id;
             userCreationResponse.errors = Collections.emptyList();
             return userCreationResponse;
         }
 
-        public static UserCreationResponse withErrors(List<String> errors) {
+        public static UserCreationResponse failure(List<String> errors) {
             UserCreationResponse userCreationResponse = new UserCreationResponse();
             userCreationResponse.id = null;
             userCreationResponse.errors = errors;

@@ -1,6 +1,5 @@
 package com.ddd.validation.domain;
 
-import com.ddd.validation.application.ErrorCollector;
 import org.springframework.stereotype.Component;
 
 public class User {

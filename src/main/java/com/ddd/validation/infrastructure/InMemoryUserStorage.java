@@ -12,11 +12,11 @@ public class InMemoryUserStorage {
 
     private final List<User> storage = new ArrayList<>();
 
-    public void add(User user) {
+    void add(User user) {
         storage.add(user);
     }
 
-    public Stream<User> stream() {
+    Stream<User> stream() {
         return storage.stream();
     }
 }

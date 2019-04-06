@@ -1,6 +1,5 @@
 package com.ddd.validation.infrastructure;
 
-import com.ddd.validation.domain.Email;
 import com.ddd.validation.domain.UsersFinder;
 import org.springframework.stereotype.Component;
 

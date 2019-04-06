@@ -1,7 +1,5 @@
 package com.ddd.validation.domain;
 
-import com.ddd.validation.application.ErrorCollector;
-
 public class Password {
 
     private String value;
