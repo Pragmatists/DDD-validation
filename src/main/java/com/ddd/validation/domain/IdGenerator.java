@@ -6,7 +6,8 @@ import java.util.UUID;
 
 @Component
 public class IdGenerator {
-    public String id() {
-        return UUID.randomUUID().toString();
+    
+    public UserId id() {
+        return UserId.of(UUID.randomUUID().toString());
     }
 }

@@ -1,5 +1,8 @@
 package com.ddd.validation.infrastructure;
 
+import com.ddd.validation.domain.Email;
+import com.ddd.validation.domain.User;
+import com.ddd.validation.domain.UserId;
 import com.ddd.validation.domain.UsersFinder;
 import org.springframework.stereotype.Component;
 
@@ -13,10 +16,10 @@ public class DefaultUsersFinder implements UsersFinder {
     }
 
     @Override
-    public String findUserEmailById(String id) {
+    public Email findUserEmailById(UserId id) {
         return storage.stream()
                 .filter(user -> user.getId().equals(id))
-                .map(user -> user.getEmail().toString())
+                .map(User::getEmail)
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException(String.format("No user with id = '%s'", id)));
     }
