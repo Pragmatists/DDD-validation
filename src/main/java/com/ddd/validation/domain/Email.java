@@ -47,14 +47,14 @@ public class Email {
             Matcher matcher = EMAIL_PATTERN.matcher(email);
 
             if (!matcher.matches()) {
-                errorCollector.add(new BadEmailException());
+                errorCollector.add(new BadEmailException(email));
             }
         }
     }
 
-    public static class BadEmailException extends RuntimeException {
-        public BadEmailException() {
-            super("bad email");
+    public static class BadEmailException extends ValidationException {
+        public BadEmailException(String address) {
+            super("Bad email - " + address);
         }
     }
 }

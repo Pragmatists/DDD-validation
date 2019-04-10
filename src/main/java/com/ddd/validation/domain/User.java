@@ -58,7 +58,7 @@ public class User {
         }
     }
 
-    public static class NotUniqueEmailAddress extends RuntimeException {
+    public static class NotUniqueEmailAddress extends ValidationException {
         public NotUniqueEmailAddress(Email email) {
             super(String.format("Not unique email address - '%s'", email));
         }

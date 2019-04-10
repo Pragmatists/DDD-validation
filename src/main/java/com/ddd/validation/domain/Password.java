@@ -27,9 +27,9 @@ public class Password {
 
     }
 
-    public static class PasswordTooWeakException extends RuntimeException {
+    public static class PasswordTooWeakException extends ValidationException {
         public PasswordTooWeakException() {
-            super("password too weak");
+            super("Password too weak");
         }
     }
 }

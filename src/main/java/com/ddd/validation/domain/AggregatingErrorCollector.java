@@ -9,7 +9,7 @@ public class AggregatingErrorCollector implements ErrorCollector {
     private List<RuntimeException> errors = new ArrayList<>();
 
     @Override
-    public void add(RuntimeException e) {
+    public void add(ValidationException e) {
         this.errors.add(e);
     }
 
