@@ -5,7 +5,7 @@ public class Password {
     private String value;
 
     private Password(String value) {
-        Password.test(value, new ThrowingErrorCollector());
+        Password.test(value, new ThrowingValidationExceptionHandler());
         this.value = value;
     }
 
@@ -13,15 +13,15 @@ public class Password {
         return new Password(value);
     }
 
-    public static void test(String password, ErrorCollector errorCollector) {
-        new PasswordValidator().validate(password, errorCollector);
+    public static void test(String password, ValidationExceptionHandler validationExceptionHandler) {
+        new PasswordValidator().validate(password, validationExceptionHandler);
     }
 
     private static class PasswordValidator {
 
-        public void validate(String value, ErrorCollector errorCollector) {
+        public void validate(String value, ValidationExceptionHandler validationExceptionHandler) {
             if (value == null || value.length() < 5) {
-                errorCollector.add(new PasswordTooWeakException());
+                validationExceptionHandler.add(new PasswordTooWeakException());
             }
         }
 

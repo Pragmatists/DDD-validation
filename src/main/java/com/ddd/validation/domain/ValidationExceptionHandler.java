@@ -1,5 +1,5 @@
 package com.ddd.validation.domain;
 
-public interface ErrorCollector {
+public interface ValidationExceptionHandler {
     void add(ValidationException e);
 }

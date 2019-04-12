@@ -30,9 +30,9 @@ public class User {
             this.users = users;
         }
 
-        public void validate(Email email, ErrorCollector errorCollector) {
+        public void validate(Email email, ValidationExceptionHandler validationExceptionHandler) {
             if (users.isUniqueEmail(email)){
-                errorCollector.add(new NotUniqueEmailAddress(email));
+                validationExceptionHandler.add(new NotUniqueEmailAddress(email));
             }
         }
     }
@@ -49,12 +49,12 @@ public class User {
         }
 
         public User create(Password password, Email email) {
-            test(email, new ThrowingErrorCollector());
+            test(email, new ThrowingValidationExceptionHandler());
             return new User(idGenerator.id(), email, password);
         }
 
-        public void test(Email email, ErrorCollector errorCollector) {
-            new EmailUniquenessValidator(users).validate(email, errorCollector);
+        public void test(Email email, ValidationExceptionHandler validationExceptionHandler) {
+            new EmailUniquenessValidator(users).validate(email, validationExceptionHandler);
         }
     }
 

@@ -9,7 +9,7 @@ public class Email {
     private String email;
 
     private Email(String email) {
-        Email.test(email, new ThrowingErrorCollector());
+        Email.test(email, new ThrowingValidationExceptionHandler());
         this.email = email;
     }
 
@@ -17,8 +17,8 @@ public class Email {
         return new Email(email);
     }
 
-    public static void test(String email, ErrorCollector errorCollector) {
-        new EmailValidator().validate(email, errorCollector);
+    public static void test(String email, ValidationExceptionHandler validationExceptionHandler) {
+        new EmailValidator().validate(email, validationExceptionHandler);
     }
 
     @Override
@@ -43,11 +43,11 @@ public class Email {
 
         private final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
-        public void validate(String email, ErrorCollector errorCollector) {
+        public void validate(String email, ValidationExceptionHandler validationExceptionHandler) {
             Matcher matcher = EMAIL_PATTERN.matcher(email);
 
             if (!matcher.matches()) {
-                errorCollector.add(new BadEmailException(email));
+                validationExceptionHandler.add(new BadEmailException(email));
             }
         }
     }

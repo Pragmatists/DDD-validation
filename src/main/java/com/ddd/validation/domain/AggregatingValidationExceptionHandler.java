@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AggregatingErrorCollector implements ErrorCollector {
+public class AggregatingValidationExceptionHandler implements ValidationExceptionHandler {
 
     private List<RuntimeException> errors = new ArrayList<>();
 

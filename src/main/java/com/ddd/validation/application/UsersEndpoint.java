@@ -35,7 +35,7 @@ public class UsersEndpoint {
     }
 
     private List<String> validateRequest(UserCreationRequest request) {
-        AggregatingErrorCollector errorCollector = new AggregatingErrorCollector();
+        AggregatingValidationExceptionHandler errorCollector = new AggregatingValidationExceptionHandler();
 
         Email.test(request.email, errorCollector);
         Password.test(request.password, errorCollector);
